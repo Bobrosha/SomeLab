@@ -1,70 +1,49 @@
-#ifndef COSEXPWORKER_H
-#define COSEXPWORKER_H
+#ifndef WORKER_H
+#define WORKER_H
 #define USE_MATH_DEFINES
+
 #include <cassert>
-#include <iostream>
 #include <random>
 #include <vector>
 #include <cmath>
 #include <string>
 
 using namespace std;
+
 const double PI = acos(-1.0);
 
 inline random_device rnd;
 inline default_random_engine random(rnd());
 
-class CosExpWorker {
+class CosinusExponentialWorker {
     double _v;
-    double theta = NULL;
-    double lambda = NULL;
+    double theta = 0;
+    double lambda = 0;
     string label;
+    int n = 0;
 
 public:
-    CosExpWorker() {
-        _v = NULL;
+    explicit CosinusExponentialWorker(
+        const double _v,
+        const double _theta,
+        const double _lambda,
+        const string &_label,
+        const int _n
+    ) {
+        this->_v = _v;
+
+        theta = _theta;
+        lambda = _lambda;
+        label = _label;
+        n = _n;
     }
 
-    explicit CosExpWorker(const double v) {
-        _v = v;
-    }
-
-    explicit CosExpWorker(const string &name) {
-        if (name == "cospowerlaw") {
-            _v = 0.9;
-        } else if (name == "laplace") {
-            _v = 2;
-        } else {
-            _v = 0.1;
-        }
-    }
-
-    void set_label(const string &text) {
-        label = text;
-    }
-
-    [[nodiscard]] string get_label() const {
-        return label;
+    static CosinusExponentialWorker from(const Utility_io &io) {
+        return CosinusExponentialWorker(io.get_v(), io.get_theta(), io.get_lambda(), io.get_label(), io.get_n());
     }
 
     [[nodiscard]] double get_v() const {
         return _v;
-    }
-
-    void set_theta(const double _theta) {
-        theta = _theta;
-    }
-
-    [[nodiscard]] double get_theta() const {
-        return theta;
-    }
-
-    void set_lambda(const double _lambda) {
-        lambda = _lambda;
-    }
-
-    [[nodiscard]] double get_lambda() const {
-        return lambda;
     }
 
     [[nodiscard]] double generate_cosexp_value(const double p) const {
@@ -103,9 +82,9 @@ public:
         return x * lambda + theta;
     }
 
-    [[nodiscard]] vector<double> sample_gen(const int size) const {
+    [[nodiscard]] vector<double> sample_gen() const {
         vector<double> result;
-        for (int i = 0; i < size; i++) {
+        for (int i = 0; i < n; i++) {
             result.push_back(generate_cosexp_value(check_p()));
         }
 
@@ -177,11 +156,11 @@ public:
     [[nodiscard]] double calculate_theoretical_excess() const {
         const double a = check_a();
         const double k = check_k(a);
-        const double s = calculate_theoretical_dispersion();
-        return 4 / (pow(s, 2) * pow(PI, 5) * k) * (
+        const double d = calculate_theoretical_dispersion();
+        return 4 / (pow(d, 2) * pow(PI, 5) * k) * (
                    pow(PI * _v, 5) / 20 + (pow(PI * _v, 4) / 4 - 3 * pow(PI * _v, 2) + 6) * sin(PI * _v) + (
                        pow(PI * _v, 3) - 6 * PI * _v) * cos(PI * _v))
-               + 2 * pow(cos(PI * _v / 2), 2) / (pow(s, 2) * k) * (
+               + 2 * pow(cos(PI * _v / 2), 2) / (pow(d, 2) * k) * (
                    24 / pow(a, 5) + 24 * _v / pow(a, 4) + 12 * pow(_v, 2) / pow(a, 3) + 4 * pow(_v, 3) / pow(a, 2) +
                    pow(_v, 4) / a);
     }

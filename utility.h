@@ -1,13 +1,17 @@
 #ifndef INPUT_H
 #define INPUT_H
 
+#include <fstream>
 #include <iostream>
 #include <string>
 
 using namespace std;
 
+const string NAME_DISTRIBUTION_COS_POWER_LAW = "cospowerlaw";
+
 const string MESSAGE_DISTRIBUTION =
-        "Введите название распределения из предложенных (truncatedcos -	усеченное косинусно-степенное, cospowerlaw - косинусно-степенное)\n"
+        "Введите название распределения из предложенных (truncatedcos -	усеченное косинусно-степенное, " +
+        NAME_DISTRIBUTION_COS_POWER_LAW + " - косинусно-степенное)\n"
         "или введите число (0 < v < 1), если хотите сами задать параметры формы:";
 const string MESSAGE_LABEL = "Введите текстовую метку, описывающую объект:";
 const string MESSAGE_SIZE = "Введите размер выборки N:";
@@ -25,24 +29,27 @@ const string MESSAGE_SCALE_ERROR = "Введено неверное значен
 const string FILE_NAME_SAMPLE = "sample.txt";
 const string FILE_NAME_COSEXP = "cosexp.txt";
 
-class Utility_io {
-    string text;
+class Input {
+};
+
+class Utility_io : public Input {
     string label;
     int n = 0;
+    double v = 0;
     double theta = 0;
     double lambda = 0;
 
 public:
-    [[nodiscard]] string get_text() const {
-        return text;
-    }
-
     [[nodiscard]] string get_label() const {
         return label;
     }
 
     [[nodiscard]] int get_n() const {
         return n;
+    }
+
+    [[nodiscard]] double get_v() const {
+        return v;
     }
 
     [[nodiscard]] double get_theta() const {
@@ -54,9 +61,28 @@ public:
     }
 
 private:
+    static bool isNumeric(string const &str) {
+        return !str.empty();
+    }
+
+    static double from_string(const string &str) {
+        if (isNumeric(str)) {
+            return stod(str);
+        }
+
+        if (str == NAME_DISTRIBUTION_COS_POWER_LAW) {
+            return 0.9;
+        }
+
+        return 0.1;
+    }
+
     void input_distribution() {
         cout << MESSAGE_DISTRIBUTION << endl;
-        getline(cin, text);
+        string input_text;
+        getline(cin, input_text);
+
+        v = from_string(input_text);
     }
 
     void input_label() {
@@ -123,6 +149,32 @@ public:
     static void save_cosexp(const vector<double> &array) {
         write_to_file(array, FILE_NAME_COSEXP);
     }
+
+    // static void print() {
+    //     cout << "Параметр формы задан равным " << worker.get_v() << endl << endl;
+    //
+    //     cout << endl << worker.check_p() << endl; // ???
+    //
+    //     cout << endl << "Среднее арифметическое = " << calculate_mean_value(sample) << endl;
+    //     cout << "Мат ожидание = " << worker.calculate_expected_value() << endl << endl;
+    //
+    //     const auto [median, min, max] = median_min_max(sample);
+    //     cout << "Медиана = " << median << endl;
+    //     cout << "Теоретическая медиана = " << worker.calculate_theoretical_median() << endl << endl;
+    //
+    //     cout << "Min = " << min << endl;
+    //
+    //     cout << "Max = " << max << endl;
+    //
+    //     cout << "Дисперсия = " << calculate_dispersion(sample) << endl;
+    //     cout << "Теоретическая дисперсия = " << worker.calculate_theoretical_dispersion() << endl << endl;
+    //
+    //     cout << "Коэффициент ассиметрии = " << asymmetry(sample) << endl << endl;
+    //     cout << "Теоретический коэффициент ассиметрии = " << CosinusExponentialWorker::theoretical_asymmetry() << endl;
+    //
+    //     cout << "Коэффициент эксцесса = " << calculate_excess(sample) << endl;
+    //     cout << "Теоретический коэффициент эксцесса = " << worker.calculate_theoretical_excess() << endl;
+    // }
 
 private:
     static void write_to_file(const vector<double> &array, const string &filename) {
